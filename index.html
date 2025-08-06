@@ -1,94 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Gemini Prompt Logger</title>
+  <title>Send Prompt</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #ff9a9e, #fecfef);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      font-family: Arial;
+      padding: 20px;
     }
-
-    h1 {
-      color: #333;
-    }
-
-    input, button {
-      padding: 10px 15px;
+    textarea, button {
+      width: 100%;
+      padding: 10px;
       margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    input {
-      width: 300px;
-    }
-
-    button {
-      background-color: #6c5ce7;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #4834d4;
-    }
-
-    .status {
-      margin-top: 15px;
-      font-weight: bold;
-      color: green;
     }
   </style>
 </head>
 <body>
-
-  <h1>Ask Something</h1>
-  <input type="text" id="promptInput" placeholder="Enter your prompt here..." />
-  <button onclick="submitPrompt()">Submit</button>
-  <div class="status" id="statusMsg"></div>
+  <h2>Ask something</h2>
+  <textarea id="prompt" rows="4" placeholder="Write your prompt here..."></textarea>
+  <button onclick="sendPrompt()">Send</button>
+  <p id="response"></p>
 
   <script>
-    function submitPrompt() {
-      const prompt = document.getElementById("promptInput").value.trim();
+    async function sendPrompt() {
+      const prompt = document.getElementById("prompt").value;
       const device = navigator.userAgent;
-      const statusMsg = document.getElementById("statusMsg");
 
-      if (!prompt) {
-        statusMsg.style.color = "red";
-        statusMsg.innerText = "Please enter something!";
-        return;
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbyJrww17cXmmD2LjGjU4j64QNn-2mFMk9MP6LL46HGooIbX5pAMtcqqiS00VLf483Cl5Q/exec", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            device: device,
+            prompt: prompt
+          })
+        });
+
+        const text = await res.text();
+        document.getElementById("response").innerText = text;
+      } catch (err) {
+        document.getElementById("response").innerText = "Error: " + err.message;
       }
-
-      fetch("https://script.google.com/macros/s/AKfycbyJrww17cXmmD2LjGjU4j64QNn-2mFMk9MP6LL46HGooIbX5pAMtcqqiS00VLf483Cl5Q/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          device: device
-        })
-      })
-      .then(res => res.text())
-      .then(data => {
-        statusMsg.style.color = "green";
-        statusMsg.innerText = "Prompt submitted successfully!";
-        document.getElementById("promptInput").value = "";
-      })
-      .catch(err => {
-        statusMsg.style.color = "red";
-        statusMsg.innerText = "Error: " + err.message;
-      });
     }
   </script>
-
 </body>
 </html>
